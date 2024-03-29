@@ -35,6 +35,16 @@ class ChatUser {
     }
   }
 
+  /** send message just to user about list of members in chat */
+
+  showMembers() {
+    this.room.broadcast({
+      name: this.name,
+      type: "note",
+      text: this.room.members
+    });
+  }
+
   /** Handle joining: add to room members, announce join.
    *
    * @param name {string} name to use in room
@@ -63,12 +73,27 @@ class ChatUser {
   }
 
 
-  handleJoke() {
+  async handleJoke() {
     this.room.broadcast({
-      name: this.name,
+      name: "Server",
       type: "chat",
-      text: "Why don't skeletons fight each other? They don't have the guts",
+      text: await ChatUser.getJoke()
     });
+  }
+
+  /** get random jokes from API */
+
+  static async getJoke() {
+    const url = "https://icanhazdadjoke.com/"
+    const response = await fetch(
+      url, {
+        headers: {
+          "accept": "application/json"
+        }
+      })
+
+    const joke = await response.json();
+    return joke.joke;
   }
 
   /** Handle messages from client:
@@ -78,15 +103,20 @@ class ChatUser {
    * @example<code>
    * - {type: "join", name: username} : join
    * - {type: "chat", text: msg }     : chat
+   * - {type: "get-joke", text: joke} : get-joke
    * </code>
    */
 
-  handleMessage(jsonData) {
+  async handleMessage(jsonData) {
     let msg = JSON.parse(jsonData);
 
+    if (msg.text === "/joke") msg.type = "get-joke";
+    if (msg.text === "/members") msg.type = "get-members";
+
     if (msg.type === "join") this.handleJoin(msg.name);
+    else if (msg.type === "get-joke") await this.handleJoke();
+    else if (msg.type === "get-members") this.showMembers();
     else if (msg.type === "chat") this.handleChat(msg.text);
-    else if (msg.type === "get-joke") this.handleJoke();
     else throw new Error(`bad message: ${msg.type}`);
   }
 
