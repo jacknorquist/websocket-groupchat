@@ -62,6 +62,15 @@ class ChatUser {
     });
   }
 
+
+  handleJoke() {
+    this.room.broadcast({
+      name: this.name,
+      type: "chat",
+      text: "Why don't skeletons fight each other? They don't have the guts",
+    });
+  }
+
   /** Handle messages from client:
    *
    * @param jsonData {string} raw message data
@@ -77,6 +86,7 @@ class ChatUser {
 
     if (msg.type === "join") this.handleJoin(msg.name);
     else if (msg.type === "chat") this.handleChat(msg.text);
+    else if (msg.type === "get-joke") this.handleJoke();
     else throw new Error(`bad message: ${msg.type}`);
   }
 

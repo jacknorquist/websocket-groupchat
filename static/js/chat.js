@@ -27,7 +27,9 @@ ws.onmessage = function (evt) {
 
   let msg = JSON.parse(evt.data);
   let $item = document.createElement("li");
-
+  if (msg.text === "/joke") {
+    msg.type = "get-joke";
+  }
   if (msg.type === "note") {
     $item.innerHTML = `<i>${msg.text}</i>`;
   } else if (msg.type === "chat") {
